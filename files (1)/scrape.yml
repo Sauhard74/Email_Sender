@@ -1,0 +1,44 @@
+name: ASCENT Registration Scraper
+
+on:
+  schedule:
+    # Runs every hour
+    - cron: '0 * * * *'
+  
+  # Also allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps
+
+      - name: Run scraper
+        env:
+          UNSTOP_EMAIL: ${{ secrets.UNSTOP_EMAIL }}
+          UNSTOP_PASSWORD: ${{ secrets.UNSTOP_PASSWORD }}
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: python scraper.py
+
+      - name: Commit updated processed.json + CSV
+        run: |
+          git config user.name "ASCENT Bot"
+          git config user.email "bot@ascent.scaler.com"
+          git add processed.json new_registrants.csv || true
+          git diff --staged --quiet || git commit -m "🤖 Auto: $(date '+%Y-%m-%d %H:%M') — scraped registrations"
+          git push
