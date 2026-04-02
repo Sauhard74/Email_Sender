@@ -138,6 +138,20 @@ def generate_share_page(registrant: dict) -> str:
     .tagline {{ color: #888; font-size: 14px; letter-spacing: 3px; margin-bottom: 24px; }}
     .poster {{ width: 100%; max-width: 600px; border-radius: 12px; margin-bottom: 24px; }}
     .details {{ color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 24px; }}
+    .share-btn {{
+      display: none;
+      background: #0077B5;
+      color: #fff;
+      border: none;
+      padding: 16px 40px;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 8px;
+    }}
+    .share-btn:active {{ background: #005f8f; }}
     .status {{ color: #888; font-size: 14px; margin-top: 16px; }}
   </style>
 </head>
@@ -151,19 +165,45 @@ def generate_share_page(registrant: dict) -> str:
       Scaler School of Technology's biggest tech fest<br>
       17th May 2026 &bull; Bengaluru
     </p>
-    <p class="status" id="status">Preparing share...</p>
+    <button id="shareBtn" class="share-btn">Share on LinkedIn</button>
+    <p class="status" id="status"></p>
   </div>
 
   <script>
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const statusEl = document.getElementById('status');
+    const shareBtn = document.getElementById('shareBtn');
+
+    const shareText = '🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\\n\\nExcited to be part of Scaler School of Technology\\'s biggest fest.\\n\\n📅 17th May 2026 | Bengaluru\\n\\nDon\\'t miss out — register now on Unstop!\\n\\n#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest';
 
     if (isMobile) {{
-      // Mobile: open LinkedIn app/browser with OG preview card (shows personalized ticket)
-      statusEl.textContent = 'Opening LinkedIn...';
-      window.location.href = '{linkedin_mobile_url}';
+      // Mobile: show share button, use Web Share API on tap
+      shareBtn.style.display = 'inline-block';
+
+      shareBtn.addEventListener('click', async () => {{
+        try {{
+          const res = await fetch('{filename}.png');
+          const blob = await res.blob();
+          const file = new File([blob], 'ASCENT-2026-Ticket.png', {{ type: 'image/png' }});
+
+          if (navigator.canShare && navigator.canShare({{ files: [file] }})) {{
+            await navigator.share({{
+              text: shareText,
+              files: [file],
+            }});
+          }} else {{
+            // Fallback: open LinkedIn share-offsite
+            window.location.href = '{linkedin_mobile_url}';
+          }}
+        }} catch (e) {{
+          if (e.name !== 'AbortError') {{
+            // Share failed (not user cancel) — fallback
+            window.location.href = '{linkedin_mobile_url}';
+          }}
+        }}
+      }});
     }} else {{
-      // Desktop: redirect to LinkedIn feed with pre-filled caption
+      // Desktop: auto-redirect to LinkedIn with pre-filled caption
       statusEl.textContent = 'Redirecting to LinkedIn...';
       window.location.href = '{linkedin_desktop_url}';
     }}
