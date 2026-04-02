@@ -96,6 +96,8 @@ def generate_share_page(registrant: dict) -> str:
     import urllib.parse
     encoded_text = urllib.parse.quote(share_text, safe='')
     linkedin_desktop_url = f"https://www.linkedin.com/feed/?shareActive=true&text={encoded_text}"
+    encoded_share_url = urllib.parse.quote(share_page_url, safe='')
+    linkedin_mobile_url = f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_share_url}"
 
     og_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -156,28 +158,12 @@ def generate_share_page(registrant: dict) -> str:
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const statusEl = document.getElementById('status');
 
-    if (isMobile && navigator.share) {{
-      // Mobile: use Web Share API to share the ticket image
-      statusEl.textContent = 'Opening share sheet...';
-
-      fetch('{filename}.png')
-        .then(res => res.blob())
-        .then(blob => {{
-          const file = new File([blob], 'ascent-ticket.png', {{ type: 'image/png' }});
-          navigator.share({{
-            title: '{registrant["name"]} is attending ASCENT 2026!',
-            text: '🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\\n\\nExcited to be part of Scaler School of Technology\\'s biggest fest.\\n\\n📅 17th May 2026 | Bengaluru\\n\\n#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest',
-            files: [file],
-          }}).catch(() => {{
-            // User cancelled or share failed — show the page
-            statusEl.textContent = 'Save the image above and share it!';
-          }});
-        }})
-        .catch(() => {{
-          statusEl.textContent = 'Save the image above and share it!';
-        }});
+    if (isMobile) {{
+      // Mobile: open LinkedIn app/browser with OG preview card (shows personalized ticket)
+      statusEl.textContent = 'Opening LinkedIn...';
+      window.location.href = '{linkedin_mobile_url}';
     }} else {{
-      // Desktop: redirect to LinkedIn with pre-filled caption
+      // Desktop: redirect to LinkedIn feed with pre-filled caption
       statusEl.textContent = 'Redirecting to LinkedIn...';
       window.location.href = '{linkedin_desktop_url}';
     }}
