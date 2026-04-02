@@ -19,8 +19,6 @@
   <meta name="twitter:description" content="Escape the Ordinary — Scaler School of Technology's biggest tech fest." />
   <meta name="twitter:image" content="https://sauhard74.github.io/Email_Sender/share/REG0001-sauhard-gupta.png" />
 
-  <meta http-equiv="refresh" content="3;url=https://ascent.scaler.com" />
-
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -39,33 +37,51 @@
     .tagline { color: #888; font-size: 14px; letter-spacing: 3px; margin-bottom: 24px; }
     .poster { width: 100%; max-width: 600px; border-radius: 12px; margin-bottom: 24px; }
     .details { color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 24px; }
-    .cta {
-      display: inline-block;
-      background: #1a6fff;
-      color: #fff;
-      text-decoration: none;
-      padding: 14px 36px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .cta:hover { background: #1558cc; }
-    .redirect { color: #666; font-size: 12px; margin-top: 16px; }
+    .status { color: #888; font-size: 14px; margin-top: 16px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>ASCENT</h1>
     <p class="tagline">ESCAPE THE ORDINARY</p>
-    <img src="REG0001-sauhard-gupta.png" alt="Sauhard Gupta's ASCENT 2026 Ticket" class="poster" />
+    <img id="poster" src="REG0001-sauhard-gupta.png" alt="Sauhard Gupta's ASCENT 2026 Ticket" class="poster" />
     <p class="details">
       <strong>Sauhard Gupta</strong> is attending ASCENT 2026!<br>
       Scaler School of Technology's biggest tech fest<br>
       17th May 2026 &bull; Bengaluru
     </p>
-    <a href="https://ascent.scaler.com" class="cta">Register Now</a>
-    <p class="redirect">Redirecting to ascent.scaler.com...</p>
+    <p class="status" id="status">Preparing share...</p>
   </div>
+
+  <script>
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const statusEl = document.getElementById('status');
+
+    if (isMobile && navigator.share) {
+      // Mobile: use Web Share API to share the ticket image
+      statusEl.textContent = 'Opening share sheet...';
+
+      fetch('REG0001-sauhard-gupta.png')
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], 'ascent-ticket.png', { type: 'image/png' });
+          navigator.share({
+            title: 'Sauhard Gupta is attending ASCENT 2026!',
+            text: '🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\n\nExcited to be part of Scaler School of Technology\'s biggest fest.\n\n📅 17th May 2026 | Bengaluru\n\n#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest',
+            files: [file],
+          }).catch(() => {
+            // User cancelled or share failed — show the page
+            statusEl.textContent = 'Save the image above and share it!';
+          });
+        })
+        .catch(() => {
+          statusEl.textContent = 'Save the image above and share it!';
+        });
+    } else {
+      // Desktop: redirect to LinkedIn with pre-filled caption
+      statusEl.textContent = 'Redirecting to LinkedIn...';
+      window.location.href = 'https://www.linkedin.com/feed/?shareActive=true&text=%F0%9F%9A%80%20Just%20registered%20for%20ASCENT%202026%20%E2%80%94%20Escape%20the%20Ordinary%21%0A%0AExcited%20to%20be%20part%20of%20Scaler%20School%20of%20Technology%27s%20biggest%20fest.%0A%0A%F0%9F%93%85%2017th%20May%202026%20%7C%20Bengaluru%0A%0ADon%27t%20miss%20out%20%E2%80%94%20register%20now%20on%20Unstop%21%0A%0A%23ASCENT2026%20%23ScalerSchoolOfTechnology%20%23EscapeTheOrdinary%20%23TechFest%0A%0Ahttps%3A%2F%2Fsauhard74.github.io%2FEmail_Sender%2Fshare%2FREG0001-sauhard-gupta.html';
+    }
+  </script>
 </body>
 </html>

@@ -84,6 +84,19 @@ def generate_share_page(registrant: dict) -> str:
     share_page_url = f"{GITHUB_PAGES_BASE}/{filename}.html"
     og_image_url = f"{GITHUB_PAGES_BASE}/{filename}.png"
 
+    # Build the LinkedIn desktop URL with pre-filled caption
+    share_text = (
+        "🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\n\n"
+        "Excited to be part of Scaler School of Technology's biggest fest.\n\n"
+        "📅 17th May 2026 | Bengaluru\n\n"
+        "Don't miss out — register now on Unstop!\n\n"
+        "#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest\n\n"
+        f"{share_page_url}"
+    )
+    import urllib.parse
+    encoded_text = urllib.parse.quote(share_text, safe='')
+    linkedin_desktop_url = f"https://www.linkedin.com/feed/?shareActive=true&text={encoded_text}"
+
     og_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,8 +118,6 @@ def generate_share_page(registrant: dict) -> str:
   <meta name="twitter:description" content="Escape the Ordinary — Scaler School of Technology's biggest tech fest." />
   <meta name="twitter:image" content="{og_image_url}" />
 
-  <meta http-equiv="refresh" content="3;url=https://ascent.scaler.com" />
-
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
     body {{
@@ -125,34 +136,52 @@ def generate_share_page(registrant: dict) -> str:
     .tagline {{ color: #888; font-size: 14px; letter-spacing: 3px; margin-bottom: 24px; }}
     .poster {{ width: 100%; max-width: 600px; border-radius: 12px; margin-bottom: 24px; }}
     .details {{ color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 24px; }}
-    .cta {{
-      display: inline-block;
-      background: #1a6fff;
-      color: #fff;
-      text-decoration: none;
-      padding: 14px 36px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }}
-    .cta:hover {{ background: #1558cc; }}
-    .redirect {{ color: #666; font-size: 12px; margin-top: 16px; }}
+    .status {{ color: #888; font-size: 14px; margin-top: 16px; }}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>ASCENT</h1>
     <p class="tagline">ESCAPE THE ORDINARY</p>
-    <img src="{filename}.png" alt="{registrant['name']}'s ASCENT 2026 Ticket" class="poster" />
+    <img id="poster" src="{filename}.png" alt="{registrant['name']}'s ASCENT 2026 Ticket" class="poster" />
     <p class="details">
       <strong>{registrant['name']}</strong> is attending ASCENT 2026!<br>
       Scaler School of Technology's biggest tech fest<br>
       17th May 2026 &bull; Bengaluru
     </p>
-    <a href="https://ascent.scaler.com" class="cta">Register Now</a>
-    <p class="redirect">Redirecting to ascent.scaler.com...</p>
+    <p class="status" id="status">Preparing share...</p>
   </div>
+
+  <script>
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const statusEl = document.getElementById('status');
+
+    if (isMobile && navigator.share) {{
+      // Mobile: use Web Share API to share the ticket image
+      statusEl.textContent = 'Opening share sheet...';
+
+      fetch('{filename}.png')
+        .then(res => res.blob())
+        .then(blob => {{
+          const file = new File([blob], 'ascent-ticket.png', {{ type: 'image/png' }});
+          navigator.share({{
+            title: '{registrant["name"]} is attending ASCENT 2026!',
+            text: '🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\\n\\nExcited to be part of Scaler School of Technology\\'s biggest fest.\\n\\n📅 17th May 2026 | Bengaluru\\n\\n#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest',
+            files: [file],
+          }}).catch(() => {{
+            // User cancelled or share failed — show the page
+            statusEl.textContent = 'Save the image above and share it!';
+          }});
+        }})
+        .catch(() => {{
+          statusEl.textContent = 'Save the image above and share it!';
+        }});
+    }} else {{
+      // Desktop: redirect to LinkedIn with pre-filled caption
+      statusEl.textContent = 'Redirecting to LinkedIn...';
+      window.location.href = '{linkedin_desktop_url}';
+    }}
+  </script>
 </body>
 </html>"""
 

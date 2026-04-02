@@ -34,10 +34,8 @@ SHARE_TEXT_TEMPLATE = (
 
 
 def build_linkedin_share_url(share_url: str = "https://ascent.scaler.com") -> str:
-    """Build the LinkedIn share URL with a personalized share page link."""
-    text = SHARE_TEXT_TEMPLATE.format(share_url=share_url)
-    encoded = urllib.parse.quote(text, safe='')
-    return f"https://www.linkedin.com/feed/?shareActive=true&text={encoded}"
+    """Return the share page URL — the page itself handles mobile vs desktop."""
+    return share_url
 
 
 def build_email_html(registrant: dict, linkedin_url: str) -> str:
