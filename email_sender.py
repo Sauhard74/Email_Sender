@@ -2,7 +2,7 @@
 email_sender.py
 Sends a beautifully formatted email with:
   - The ticket PNG as an inline image
-  - A LinkedIn share button with pre-filled text + hashtags
+  - A LinkedIn share button (opens LinkedIn with personalized ticket preview)
 """
 
 import smtplib
@@ -20,21 +20,11 @@ SMTP_PORT     = 587
 SENDER_EMAIL  = os.environ.get("SMTP_EMAIL", "ascent_events@sst.scaler.com")
 SENDER_PASS   = os.environ.get("SMTP_PASSWORD", "Test@1234")
 SENDER_NAME   = "ASCENT Team"
-
-# LinkedIn share text template — {share_url} gets replaced per registrant
-SHARE_TEXT_TEMPLATE = (
-    "🚀 Just registered for ASCENT 2026 — Escape the Ordinary!\n\n"
-    "Excited to be part of Scaler School of Technology's biggest fest.\n\n"
-    "📅 17th May 2026 | Bengaluru\n\n"
-    "Don't miss out — register now on Unstop!\n\n"
-    "#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest\n\n"
-    "{share_url}"
-)
 # ─────────────────────────────────────────────────────────────
 
 
-def build_linkedin_share_url(share_url: str = "https://ascent.scaler.com") -> str:
-    """Return the share page URL — the page itself handles mobile vs desktop."""
+def build_linkedin_share_url(share_url: str) -> str:
+    """Return the share page URL — it handles mobile vs desktop redirect."""
     return share_url
 
 
@@ -88,6 +78,7 @@ def build_email_html(registrant: dict, linkedin_url: str) -> str:
     white-space: normal;
   }}
   .hashtags {{ color: #0077B5; }}
+  .copy-hint {{ color: #666; font-size: 11px; margin-top: 8px; }}
   .footer {{ text-align: center; color: #444; font-size: 11px; margin-top: 40px; line-height: 1.8; }}
 </style>
 </head>
@@ -116,9 +107,14 @@ def build_email_html(registrant: dict, linkedin_url: str) -> str:
   <!-- LinkedIn Share Section -->
   <div class="linkedin-section">
     <p>
-      🎉 Tell your network you're in! Share this on LinkedIn — it's one click.
-      <br>Here's what it'll look like:
+      🎉 Tell your network you're in! Your personalized ticket will show up as the preview card.
     </p>
+
+    <a href="{linkedin_url}" class="linkedin-btn">
+      Share on LinkedIn →
+    </a>
+
+    <p class="copy-hint">Copy-paste this as your caption:</p>
 
     <div class="share-preview">
       🚀 Just registered for ASCENT 2026 — Escape the Ordinary!<br><br>
@@ -127,10 +123,6 @@ def build_email_html(registrant: dict, linkedin_url: str) -> str:
       Don't miss out — register now on Unstop!<br><br>
       <span class="hashtags">#ASCENT2026 #ScalerSchoolOfTechnology #EscapeTheOrdinary #TechFest</span>
     </div>
-
-    <a href="{linkedin_url}" class="linkedin-btn">
-      Share on LinkedIn →
-    </a>
   </div>
 
   <hr class="divider">
