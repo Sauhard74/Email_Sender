@@ -6,12 +6,11 @@ Generates ticket PNGs + share pages, pushes everything to GitHub.
 
 import os
 import re
-import time
 import urllib.parse
 import qrcode
 from jinja2 import Environment, FileSystemLoader
 from playwright.sync_api import sync_playwright
-from github_push import push_share_files
+from github_push import push_share_files, push_file
 
 OUTPUT_DIR = "output"
 SHARE_DIR = "share"
@@ -104,11 +103,9 @@ def process_batch(registrants: list, event_name: str, progress_callback=None) ->
     template = env.get_template("ticket.html")
     results = []
     github_files = []  # files to push to GitHub
-    start = time.perf_counter()
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        share_page = browser.new_page(viewport={"width": 1200, "height": 630})
 
         for registrant in registrants:
             reg_id = registrant["registration_id"]
@@ -127,13 +124,31 @@ def process_batch(registrants: list, event_name: str, progress_callback=None) ->
                 qr_code_path=f"file://{qr_path}",
             )
 
-            # Render directly from HTML content to avoid per-user file writes + navigation.
+            # Save temp HTML
+            html_path = os.path.abspath(os.path.join(OUTPUT_DIR, f"ticket_{reg_id}.html"))
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+
+            # Screenshot ticket (reuse browser)
+            ticket_png = os.path.abspath(os.path.join(OUTPUT_DIR, f"ticket_{reg_id}.png"))
+            page = browser.new_page()
+            page.goto(f"file://{html_path}")
+            page.wait_for_load_state("networkidle")
+            ticket_el = page.query_selector("#ticket")
+            if ticket_el:
+                ticket_el.screenshot(path=ticket_png)
+            page.close()
+            print(f"  → Ticket: {registrant['name']}")
+
+            # Screenshot share poster (reuse browser)
             share_png = os.path.abspath(os.path.join(SHARE_DIR, f"{share_filename}.png"))
-            share_page.set_content(html_content, wait_until="load")
-            ticket_el = share_page.query_selector("#ticket")
+            page = browser.new_page(viewport={"width": 1200, "height": 630})
+            page.goto(f"file://{html_path}")
+            page.wait_for_load_state("networkidle")
+            ticket_el = page.query_selector("#ticket")
             if ticket_el:
                 ticket_el.screenshot(path=share_png)
-            print(f"  → Ticket+Share: {registrant['name']}")
+            page.close()
 
             # Generate share HTML
             share_html_content = _build_share_html(registrant, share_filename)
@@ -164,12 +179,9 @@ def process_batch(registrants: list, event_name: str, progress_callback=None) ->
             if progress_callback:
                 progress_callback()
 
-        share_page.close()
         browser.close()
 
     # Push all share files to GitHub in one go
     push_status = push_share_files(SHARE_DIR, github_files, event_name)
-    elapsed = time.perf_counter() - start
-    print(f"Batch processed {len(registrants)} registrants in {elapsed:.2f}s")
 
     return results, push_status

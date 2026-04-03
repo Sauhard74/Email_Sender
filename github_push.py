@@ -7,7 +7,6 @@ Used by the deployed dashboard to push share pages to GitHub Pages.
 import base64
 import os
 import requests
-from concurrent.futures import ThreadPoolExecutor
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 REPO = "Sauhard74/Email_Sender"
@@ -37,7 +36,7 @@ def push_file(file_path: str, repo_path: str, commit_message: str = "Add file") 
 
     # Check if file already exists (need its SHA to update)
     url = f"{API_BASE}/contents/{repo_path}"
-    resp = requests.get(url, headers=_headers(), params={"ref": BRANCH}, timeout=30)
+    resp = requests.get(url, headers=_headers(), params={"ref": BRANCH})
     sha = resp.json().get("sha") if resp.status_code == 200 else None
 
     payload = {
@@ -48,7 +47,7 @@ def push_file(file_path: str, repo_path: str, commit_message: str = "Add file") 
     if sha:
         payload["sha"] = sha
 
-    resp = requests.put(url, headers=_headers(), json=payload, timeout=45)
+    resp = requests.put(url, headers=_headers(), json=payload)
     if resp.status_code in (200, 201):
         return True
     else:
@@ -67,21 +66,15 @@ def push_share_files(share_dir: str, filenames: list, event_name: str) -> str:
     success = 0
     failed = 0
 
-    def _push_one(filename: str) -> bool:
+    for filename in filenames:
         local_path = os.path.join(share_dir, filename)
         repo_path = f"share/{filename}"
         msg = f"Add share page: {filename} ({event_name})"
 
-        return push_file(local_path, repo_path, msg)
-
-    # Parallel uploads reduce wall-clock time significantly for larger batches.
-    max_workers = min(8, max(1, len(filenames)))
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for ok in executor.map(_push_one, filenames):
-            if ok:
-                success += 1
-            else:
-                failed += 1
+        if push_file(local_path, repo_path, msg):
+            success += 1
+        else:
+            failed += 1
 
     if failed == 0:
         return f"Pushed {success} share files to GitHub Pages."
