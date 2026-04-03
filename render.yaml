@@ -1,11 +1,7 @@
 services:
   - type: web
     name: ascent-dashboard
-    runtime: python
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: playwright install --with-deps chromium && gunicorn app:app --bind 0.0.0.0:$PORT
+    runtime: docker
     envVars:
       - key: FLASK_SECRET
         generateValue: true
@@ -13,7 +9,3 @@ services:
         value: ascent2026
       - key: GITHUB_TOKEN
         sync: false
-      - key: PYTHON_VERSION
-        value: "3.12"
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /opt/render/.cache/ms-playwright
