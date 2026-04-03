@@ -87,8 +87,8 @@ def sync_results_to_sheet(results: list, event_name: str) -> str:
             "event": event_name,
             "email": r["email"],
             "utm": r["share_url"],
-            "image": r["ticket_url"],
-            "mail": "no",
+            "ticket": r["ticket_url"],
+            "email_sent": "No",
         })
 
     stats = push_to_sheet(rows)
