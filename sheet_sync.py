@@ -34,18 +34,18 @@ def get_existing_keys(existing: list) -> set:
 
 def push_to_sheet(rows: list) -> dict:
     """
-    Push a list of rows to the Google Sheet.
-    Each row: {"name": ..., "event": ..., "email": ..., "utm": ...}
+    Push rows to the Google Sheet as a single batch POST.
+    Each row: {"name", "event", "email", "utm", "image", "mail"}
+    API expects an array payload.
     Returns {"pushed": N, "skipped": N, "errors": N}
     """
     # Fetch existing data for deduplication
     existing = fetch_existing()
     existing_keys = get_existing_keys(existing)
 
-    pushed = 0
+    # Filter out duplicates
+    new_rows = []
     skipped = 0
-    errors = 0
-
     for row in rows:
         email = row.get("email", "").strip().lower()
         event = row.get("event", "").strip().lower()
@@ -53,21 +53,26 @@ def push_to_sheet(rows: list) -> dict:
 
         if key in existing_keys:
             skipped += 1
-            continue
+        else:
+            new_rows.append(row)
+            existing_keys.add(key)  # prevent dupes within same batch
 
-        try:
-            resp = requests.post(SHEET_API, json=row, timeout=30)
-            if resp.status_code == 200:
-                pushed += 1
-                existing_keys.add(key)  # prevent duplicates within same batch
-            else:
-                print(f"  ❌ Sheet push failed for {email}: {resp.status_code}")
-                errors += 1
-        except Exception as e:
-            print(f"  ❌ Sheet push error for {email}: {e}")
-            errors += 1
+    if not new_rows:
+        return {"pushed": 0, "skipped": skipped, "errors": 0}
 
-    return {"pushed": pushed, "skipped": skipped, "errors": errors}
+    # Push all new rows in one batch POST
+    try:
+        resp = requests.post(SHEET_API, json=new_rows, timeout=60)
+        result = resp.json()
+        if result.get("success"):
+            pushed = result.get("inserted", len(new_rows))
+            return {"pushed": pushed, "skipped": skipped, "errors": 0}
+        else:
+            print(f"  ❌ Sheet API error: {result}")
+            return {"pushed": 0, "skipped": skipped, "errors": len(new_rows)}
+    except Exception as e:
+        print(f"  ❌ Sheet push error: {e}")
+        return {"pushed": 0, "skipped": skipped, "errors": len(new_rows)}
 
 
 def sync_results_to_sheet(results: list, event_name: str) -> str:
