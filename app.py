@@ -7,10 +7,10 @@ import csv
 import hashlib
 import io
 import os
-import subprocess
 from flask import Flask, request, jsonify, session, redirect, url_for, render_template_string, send_from_directory
 from ticket_generator import generate_ticket_image
 from share_generator import generate_share_page
+from github_push import push_share_files
 from events import EVENTS
 import urllib.parse
 
@@ -283,17 +283,16 @@ def dashboard():
 
                         print(f"  ✅ {row['name']} ({row['email']})")
 
-                    # Git push share/ to GitHub Pages
-                    try:
-                        subprocess.run(["git", "add", "share/"], check=True)
-                        subprocess.run(
-                            ["git", "commit", "-m", f"Add share pages: {event_name} ({len(results)} registrants)"],
-                            check=True
-                        )
-                        subprocess.run(["git", "push"], check=True)
-                        push_status = f"Pushed {len(results)} share pages to GitHub Pages."
-                    except subprocess.CalledProcessError as e:
-                        push_status = f"Git push warning: {e} — share pages generated but may need manual push."
+                    # Push share files to GitHub Pages via API
+                    share_files = []
+                    for r in results:
+                        # Get the share filename from the URL
+                        share_filename = r["share_url"].split("/")[-1]
+                        share_files.append(share_filename)
+                        # Also push the PNG
+                        share_files.append(share_filename.replace(".html", ".png"))
+
+                    push_status = push_share_files("share", share_files, event_name)
 
             except Exception as e:
                 error = f"Error processing CSV: {e}"
