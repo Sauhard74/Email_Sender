@@ -262,6 +262,11 @@ def dashboard():
                     # Process all at once (single browser instance)
                     results, push_status = process_batch(registrant_list, event_name)
 
+                    # Sync to Google Sheet (deduplicated)
+                    from sheet_sync import sync_results_to_sheet
+                    sheet_status = sync_results_to_sheet(results, event_name)
+                    push_status = f"{push_status} | Sheet: {sheet_status}"
+
             except Exception as e:
                 error = f"Error processing CSV: {e}"
 
