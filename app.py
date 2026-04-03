@@ -148,7 +148,7 @@ DASHBOARD_HTML = """
         <td>{{ r.name }}</td>
         <td>{{ r.email }}</td>
         <td>{{ r.team_id }}</td>
-        <td><a href="{{ r.ticket_path }}" target="_blank">View</a></td>
+        <td><a href="{{ r.ticket_url }}" target="_blank">View</a></td>
         <td><a href="{{ r.share_url }}" target="_blank">View</a></td>
         <td><a href="{{ r.linkedin_url }}" target="_blank">Share</a></td>
       </tr>
@@ -243,57 +243,24 @@ def dashboard():
                 if not rows:
                     error = "No valid rows found. Check CSV has 'Candidate's Name', 'Candidate's Email', 'Team ID' columns."
                 else:
-                    from ticket_generator import generate_ticket_image
-                    from share_generator import generate_share_page
-                    from github_push import push_share_files
+                    from batch_processor import process_batch
 
-                    results = []
+                    # Build registrant list
+                    registrant_list = []
                     for row in rows:
-                        # Make registration ID unique per person (team_id + email hash)
                         email_hash = hashlib.md5(row["email"].encode()).hexdigest()[:6]
                         reg_id = f"{row['team_id']}-{email_hash}"
-
-                        registrant = {
-                            "name": row["name"],
-                            "email": row["email"],
-                            "registration_id": reg_id,
-                            "event_name": event_name,
-                            "date_time": "17:05:2026 :: 10:00",
-                        }
-
-                        # Generate ticket + share page
-                        ticket_path = generate_ticket_image(registrant)
-                        share_url = generate_share_page(registrant)
-
-                        # Build LinkedIn share URL
-                        encoded = urllib.parse.quote(share_url, safe='')
-                        linkedin_url = f"https://www.linkedin.com/sharing/share-offsite/?url={encoded}"
-
-                        # Convert absolute ticket path to web URL
-                        ticket_filename = os.path.basename(ticket_path)
-                        ticket_web_url = f"/output/{ticket_filename}"
-
-                        results.append({
+                        registrant_list.append({
                             "name": row["name"],
                             "email": row["email"],
                             "team_id": row["team_id"],
-                            "ticket_path": ticket_web_url,
-                            "share_url": share_url,
-                            "linkedin_url": linkedin_url,
+                            "registration_id": reg_id,
+                            "event_name": event_name,
+                            "date_time": "17:05:2026 :: 10:00",
                         })
 
-                        print(f"  ✅ {row['name']} ({row['email']})")
-
-                    # Push share files to GitHub Pages via API
-                    share_files = []
-                    for r in results:
-                        # Get the share filename from the URL
-                        share_filename = r["share_url"].split("/")[-1]
-                        share_files.append(share_filename)
-                        # Also push the PNG
-                        share_files.append(share_filename.replace(".html", ".png"))
-
-                    push_status = push_share_files("share", share_files, event_name)
+                    # Process all at once (single browser instance)
+                    results, push_status = process_batch(registrant_list, event_name)
 
             except Exception as e:
                 error = f"Error processing CSV: {e}"
