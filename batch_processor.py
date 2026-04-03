@@ -31,7 +31,7 @@ def slugify(text: str) -> str:
 
 def _generate_qr(reg_id: str) -> str:
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=8, border=1)
-    qr.add_data(f"https://www.ascent.com/verify/{reg_id}")
+    qr.add_data(f"https://ascent.scaler.com/")
     qr.make(fit=True)
     img = qr.make_image(fill_color="white", back_color="black")
     qr_path = os.path.join(OUTPUT_DIR, f"qr_{reg_id}.png")
