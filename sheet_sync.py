@@ -6,7 +6,7 @@ Deduplication key: (email, event) — same person + same event = skip.
 
 import requests
 
-SHEET_API = "https://script.google.com/macros/s/AKfycbydxlixisGuJUHvs_GJGc2SXJ5g6plYAO1dZkMx_NpDBU-6iQ4FQVJpKow-WWEEn7os/exec"
+SHEET_API = "https://script.google.com/macros/s/AKfycbzeqpN1pdpNWLZBtG_5FV553AejEKzGeD2auulZtO_uZKoMfrHNMd7skLl5qL7a_CS6/exec"
 
 
 def fetch_existing() -> list:
@@ -82,6 +82,8 @@ def sync_results_to_sheet(results: list, event_name: str) -> str:
             "event": event_name,
             "email": r["email"],
             "utm": r["share_url"],
+            "image": r["ticket_url"],
+            "mail": "no",
         })
 
     stats = push_to_sheet(rows)
