@@ -27,7 +27,7 @@ def generate_qr_code(registration_id: str) -> str:
         box_size=8,
         border=1,
     )
-    qr.add_data(f"https://www.ascent.com/verify/{registration_id}")
+    qr.add_data(f"https://ascent.scaler.com/")
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="white", back_color="black")
