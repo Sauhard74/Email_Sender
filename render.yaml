@@ -3,6 +3,7 @@ services:
     name: ascent-dashboard
     runtime: python
     buildCommand: |
+      pip install --upgrade pip
       pip install -r requirements.txt
       playwright install chromium
       playwright install-deps
