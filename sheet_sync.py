@@ -2,11 +2,15 @@
 sheet_sync.py
 Fetches existing data from Google Sheet, deduplicates, and pushes new rows.
 Deduplication key: (email, event) — same person + same event = skip.
+
+Set SHEET_SKIP_DEDUP_FETCH=1 for fastest mode (skips prefetch dedup check).
 """
 
+import os
 import requests
 
 SHEET_API = "https://script.google.com/macros/s/AKfycbzeqpN1pdpNWLZBtG_5FV553AejEKzGeD2auulZtO_uZKoMfrHNMd7skLl5qL7a_CS6/exec"
+SHEET_SKIP_DEDUP_FETCH = os.environ.get("SHEET_SKIP_DEDUP_FETCH", "0") == "1"
 
 
 def fetch_existing() -> list:
@@ -39,9 +43,11 @@ def push_to_sheet(rows: list) -> dict:
     API expects an array payload.
     Returns {"pushed": N, "skipped": N, "errors": N}
     """
-    # Fetch existing data for deduplication
-    existing = fetch_existing()
-    existing_keys = get_existing_keys(existing)
+    # Optional fast mode: skip full-sheet fetch to avoid large-read latency.
+    existing_keys = set()
+    if not SHEET_SKIP_DEDUP_FETCH:
+        existing = fetch_existing()
+        existing_keys = get_existing_keys(existing)
 
     # Filter out duplicates
     new_rows = []
