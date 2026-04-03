@@ -5,8 +5,7 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-      playwright install --with-deps chromium
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    startCommand: playwright install --with-deps chromium && gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: FLASK_SECRET
         generateValue: true
