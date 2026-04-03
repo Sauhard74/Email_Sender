@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  #ticket {
+    display: flex;
+    width: 900px;
+    height: 320px;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'Barlow Condensed', sans-serif;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+
+  /* ── LEFT PANEL (black) ── */
+  .left-panel {
+    width: 240px;
+    min-width: 240px;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+    border-right: 2px dashed #333;
+    position: relative;
+  }
+
+  .scaler-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scaler-icon {
+    width: 32px;
+    height: 32px;
+    background: #1a6fff;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+    font-size: 16px;
+  }
+
+  .scaler-text h2 {
+    color: white;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .scaler-text p {
+    color: #888;
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .qr-code {
+    width: 130px;
+    height: 130px;
+    background: white;
+    padding: 6px;
+    border-radius: 4px;
+  }
+
+  .qr-code img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .website {
+    color: #888;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  /* ── RIGHT PANEL (textured bg) ── */
+  .right-panel {
+    flex: 1;
+    background:
+      linear-gradient(135deg,
+        rgba(10, 20, 60, 0.85) 0%,
+        rgba(30, 10, 80, 0.7) 30%,
+        rgba(5, 5, 30, 0.9) 60%,
+        rgba(40, 0, 60, 0.8) 100%
+      ),
+      /* swirl simulation using layered radial gradients */
+      radial-gradient(ellipse at 20% 50%, #1a3a8a 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #8b0000 0%, transparent 40%),
+      radial-gradient(ellipse at 60% 80%, #0a1a6a 0%, transparent 50%),
+      radial-gradient(ellipse at 40% 30%, #2a0a5a 0%, transparent 40%);
+    background-color: #080818;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28px 28px 20px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* noise texture overlay */
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  /* ── ASCENT logo top right ── */
+  .ascent-logo {
+    position: absolute;
+    top: 20px;
+    right: 28px;
+    text-align: right;
+  }
+
+  .ascent-logo .ascent-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    color: white;
+    letter-spacing: 4px;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  }
+
+  .ascent-logo .ascent-sub {
+    color: #ccc;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-family: 'Share Tech Mono', monospace;
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  /* ── Main text ── */
+  .main-content {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 220px;
+  }
+
+  .welcome-label {
+    color: #aaa;
+    font-size: 13px;
+    letter-spacing: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .participant-name {
+    color: white;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(255,255,255,0.2);
+    margin-bottom: 18px;
+  }
+
+  .access-label {
+    color: #aaa;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .event-name {
+    color: white;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  /* ── Bottom row ── */
+  .bottom-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .date-time {
+    color: white;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  /* ── Barcode ── */
+  .barcode-section {
+    text-align: right;
+  }
+
+  .barcode {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 4px;
+    justify-content: flex-end;
+  }
+
+  .barcode .bar {
+    background: white;
+    height: 40px;
+  }
+
+  .barcode-number {
+    color: #ccc;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div id="ticket">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="scaler-logo">
+      <div class="scaler-icon">S</div>
+      <div class="scaler-text">
+        <h2>SCALER</h2>
+        <p>School of Technology</p>
+      </div>
+    </div>
+
+    <div class="qr-code">
+      <img src="file:///Users/sauhardgupta/internship/ascent-email-send/Email_Sender/output/qr_REG0001.png" alt="QR Code"/>
+    </div>
+
+    <div class="website">WWW.ASCENT.COM</div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- ASCENT logo top right -->
+    <div class="ascent-logo">
+      <div class="ascent-title">&#10022; ASCENT</div>
+      <div class="ascent-sub">ESCAPE THE ORDINARY</div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <div class="welcome-label">WELCOME ABOARD</div>
+      <div class="participant-name">SAUHARD GUPTA</div>
+      <div class="access-label">YOUR ACCESS KEY HAS BEEN ACTIVATED FOR</div>
+      <div class="event-name">ANVIL - HACKATHON</div>
+    </div>
+
+    <!-- Bottom: date + barcode -->
+    <div class="bottom-row">
+      <div class="date-time">17:05:2026 :: 10:00</div>
+
+      <div class="barcode-section">
+        <div class="barcode">
+          <!-- Barcode bars — widths vary to simulate a real barcode -->
+          
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 6px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 5px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 6px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 5px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 6px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 5px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 5px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 6px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 4px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 5px;"></div>
+          
+            <div class="bar" style="width: 2px;"></div>
+          
+            <div class="bar" style="width: 3px;"></div>
+          
+        </div>
+        <div class="barcode-number">REG0001</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

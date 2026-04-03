@@ -8,7 +8,7 @@ import hashlib
 import io
 import os
 import subprocess
-from flask import Flask, request, jsonify, session, redirect, url_for, render_template_string
+from flask import Flask, request, jsonify, session, redirect, url_for, render_template_string, send_from_directory
 from ticket_generator import generate_ticket_image
 from share_generator import generate_share_page
 from events import EVENTS
@@ -166,6 +166,18 @@ DASHBOARD_HTML = """
 """
 
 
+# ── Serve output files ───────────────────────────────────────
+
+@app.route("/output/<path:filename>")
+def serve_output(filename):
+    return send_from_directory("output", filename)
+
+
+@app.route("/share/<path:filename>")
+def serve_share(filename):
+    return send_from_directory("share", filename)
+
+
 # ── Auth ─────────────────────────────────────────────────────
 
 @app.route("/login", methods=["GET", "POST"])
@@ -256,11 +268,15 @@ def dashboard():
                         encoded = urllib.parse.quote(share_url, safe='')
                         linkedin_url = f"https://www.linkedin.com/sharing/share-offsite/?url={encoded}"
 
+                        # Convert absolute ticket path to web URL
+                        ticket_filename = os.path.basename(ticket_path)
+                        ticket_web_url = f"/output/{ticket_filename}"
+
                         results.append({
                             "name": row["name"],
                             "email": row["email"],
                             "team_id": row["team_id"],
-                            "ticket_path": ticket_path,
+                            "ticket_path": ticket_web_url,
                             "share_url": share_url,
                             "linkedin_url": linkedin_url,
                         })
