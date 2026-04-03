@@ -7,12 +7,9 @@ import csv
 import hashlib
 import io
 import os
-from flask import Flask, request, jsonify, session, redirect, url_for, render_template_string, send_from_directory
-from ticket_generator import generate_ticket_image
-from share_generator import generate_share_page
-from github_push import push_share_files
-from events import EVENTS
 import urllib.parse
+from flask import Flask, request, jsonify, session, redirect, url_for, render_template_string, send_from_directory
+from events import EVENTS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET", "ascent-2026-secret-key")
@@ -246,6 +243,10 @@ def dashboard():
                 if not rows:
                     error = "No valid rows found. Check CSV has 'Candidate's Name', 'Candidate's Email', 'Team ID' columns."
                 else:
+                    from ticket_generator import generate_ticket_image
+                    from share_generator import generate_share_page
+                    from github_push import push_share_files
+
                     results = []
                     for row in rows:
                         # Make registration ID unique per person (team_id + email hash)
@@ -311,6 +312,9 @@ def dashboard():
 
 @app.route("/webhook/register", methods=["POST"])
 def handle_registration():
+    from ticket_generator import generate_ticket_image
+    from share_generator import generate_share_page
+
     data = request.get_json(force=True)
 
     name = data.get("name") or data.get("participant_name", "Participant")
