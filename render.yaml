@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ascent-dashboard
+    runtime: docker
+    envVars:
+      - key: FLASK_SECRET
+        generateValue: true
+      - key: DASHBOARD_PASSWORD
+        value: ascent2026
+      - key: GITHUB_TOKEN
+        sync: false
