@@ -94,7 +94,7 @@ def _build_share_html(registrant: dict, filename: str) -> str:
 </html>"""
 
 
-def process_batch(registrants: list, event_name: str) -> list:
+def process_batch(registrants: list, event_name: str, progress_callback=None) -> list:
     """
     Process all registrants with a single browser instance.
     Returns list of result dicts with URLs.
@@ -176,6 +176,8 @@ def process_batch(registrants: list, event_name: str) -> list:
             })
 
             print(f"  ✅ {registrant['name']} ({registrant['email']})")
+            if progress_callback:
+                progress_callback()
 
         browser.close()
 

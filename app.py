@@ -244,20 +244,7 @@ def process_job(job_id, registrant_list, event_name):
         from batch_processor import process_batch
         from sheet_sync import sync_results_to_sheet
 
-        # Monkey-patch to track progress
-        original_print = __builtins__.__dict__.get('print', print)
-        def counting_print(*args, **kwargs):
-            msg = " ".join(str(a) for a in args)
-            if msg.strip().startswith("✅"):
-                job["processed"] += 1
-            original_print(*args, **kwargs)
-
-        import builtins
-        builtins.print = counting_print
-
-        results, push_status = process_batch(registrant_list, event_name)
-
-        builtins.print = original_print
+        results, push_status = process_batch(registrant_list, event_name, progress_callback=lambda: job.update({"processed": job["processed"] + 1}))
 
         sheet_status = sync_results_to_sheet(results, event_name)
         push_status = f"{push_status} | Sheet: {sheet_status}"
